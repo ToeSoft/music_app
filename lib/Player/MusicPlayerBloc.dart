@@ -1,12 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../Api/ResponseEntry/Song.dart';
 import 'MusicPlayerEvent.dart';
 import 'MusicPlayerState.dart';
 
 class MusicPlayerBloc extends Bloc<MusicPlayerEvent, MusicPlayerState> {
   MusicPlayerBloc()
       : super(const MusicPlayerState(
-    queue: ["1","1","1","1","1","1"],
+          queue: [],
           isShuffleActive: false,
           isPlaying: false,
           loopMode: 0,
@@ -40,6 +41,18 @@ class MusicPlayerBloc extends Bloc<MusicPlayerEvent, MusicPlayerState> {
 
     on<TogglePlaylistEvent>((event, emit) {
       emit(state.copyWith(showPlaylistDialog: !state.showPlaylistDialog));
+    });
+
+    on<InsertIntoQueueEvent>((event, emit) {
+      final newQueue = List<Song>.from(state.queue);
+      newQueue.add(event.song);
+      emit(state.copyWith(queue: newQueue));
+    });
+
+    on<RemoveFromQueueEvent>((event, emit) {
+      final newQueue = List<Song>.from(state.queue);
+      newQueue.removeAt(event.index);
+      emit(state.copyWith(queue: newQueue));
     });
   }
 }

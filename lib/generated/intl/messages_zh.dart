@@ -23,6 +23,8 @@ class MessageLookup extends MessageLookupByLibrary {
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "album": MessageLookupByLibrary.simpleMessage("专辑"),
+        "album_detail": MessageLookupByLibrary.simpleMessage("专辑详情"),
+        "album_not_find": MessageLookupByLibrary.simpleMessage("没有找到相关专辑"),
         "appConfig_FontSize": MessageLookupByLibrary.simpleMessage("应用字体大小"),
         "appConfig_Language": MessageLookupByLibrary.simpleMessage("应用语言"),
         "appConfig_Theme": MessageLookupByLibrary.simpleMessage("应用主题"),
@@ -35,14 +37,23 @@ class MessageLookup extends MessageLookupByLibrary {
         "close": MessageLookupByLibrary.simpleMessage("关闭"),
         "no_data": MessageLookupByLibrary.simpleMessage("暂无数据"),
         "no_more_data": MessageLookupByLibrary.simpleMessage("没有更多数据了"),
+        "no_search_result": MessageLookupByLibrary.simpleMessage("没有搜索结果"),
+        "no_suggestions_available":
+            MessageLookupByLibrary.simpleMessage("没有可用的建议"),
         "playlist": MessageLookupByLibrary.simpleMessage("播放列表"),
         "playlist_empty": MessageLookupByLibrary.simpleMessage("播放列表为空"),
+        "playlist_not_find": MessageLookupByLibrary.simpleMessage("没有找到相关歌单"),
+        "please_input_search_content":
+            MessageLookupByLibrary.simpleMessage("请输入搜索内容"),
         "search_hint": MessageLookupByLibrary.simpleMessage("请输入搜索内容"),
         "search_tip": MessageLookupByLibrary.simpleMessage("的搜索结果"),
         "setting_description": MessageLookupByLibrary.simpleMessage("设置"),
         "setting_title": MessageLookupByLibrary.simpleMessage("设置"),
         "singer": MessageLookupByLibrary.simpleMessage("歌手"),
+        "singer_not_find": MessageLookupByLibrary.simpleMessage("没有找到相关歌手"),
+        "song_list": MessageLookupByLibrary.simpleMessage("歌单"),
         "songs": MessageLookupByLibrary.simpleMessage("歌曲"),
+        "songs_not_find": MessageLookupByLibrary.simpleMessage("没有找到相关歌曲"),
         "title": MessageLookupByLibrary.simpleMessage("Music App")
       };
 }

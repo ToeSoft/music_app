@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:music_app/utils/DialogUtils.dart';
 import 'package:music_app/utils/TextUtils.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:window_manager/window_manager.dart';
@@ -13,19 +16,28 @@ import 'AppConfig/AppConfigBloc.dart';
 import 'AppConfig/AppConfigEvent.dart';
 import 'AppConfig/AppConfigState.dart';
 import 'CustomSearchDelegate.dart';
+import 'Database/AppDataBase.dart';
 import 'PlayListDetailPage.dart';
 import 'Player/ControlButtons.dart';
 import 'Player/MusicPlayerBloc.dart';
-import 'Player/MusicPlayerEvent.dart';
 import 'Player/MusicPlayerState.dart';
 import 'Player/PlayerBar.dart';
+import 'Player/PlayerController.dart';
 import 'Player/ProgressBar.dart';
+import 'TabContent.dart';
+import 'component/PlaylistDialogContent.dart';
 import 'component/DesktopPlayListItem.dart';
 import 'component/MySearchBar.dart';
 import 'component/PlaylistItem.dart';
 import "generated/l10n.dart";
 
-main() async {
+final database = AppDatabase();
+
+Future main() async {
+  await dotenv.load(
+    fileName: '.env',
+    mergeWith: Platform.environment,
+  );
   WidgetsFlutterBinding.ensureInitialized();
   // 判断是否为 Web、Android 或 iOS 平台，如果是则不初始化 window_manager
   if (!kIsWeb &&
@@ -63,6 +75,8 @@ main() async {
   );
 }
 
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -71,6 +85,8 @@ class MyApp extends StatelessWidget {
     return BlocBuilder<AppConfigBloc, AppConfigState>(
       builder: (context, configState) {
         return MaterialApp(
+          navigatorObservers: [routeObserver],
+          // 使用共享的 routeObserver
           onGenerateTitle: (context) => S.of(context).title,
           locale: configState.locale,
           themeMode: configState.themeMode,
@@ -97,8 +113,42 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with RouteAware {
   int _currentIndex = -1; // 控制当前显示的视图索引，-1 表示显示列表
+  List<PlayListDetailItem> items = [];
+  PlayListDetailItem? selectItem;
+
+  Future<void> getList() async {
+    List<PlayListDetailItem> allItems =
+        await database.select(database.playListDetailItems).get();
+    setState(() {
+      items = allItems;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getList();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    getList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,10 +174,25 @@ class _HomePageState extends State<HomePage> {
                     ),
                     if (MediaQuery.of(context).size.width > 650)
                       Expanded(
-                        child: MySearchBar(hintText: S.current.search_hint),
+                        child: MySearchBar(
+                            hintText: S.current.search_hint,
+                            onClickCreatePlayList: () => {
+                                  showCreatePlayListDialog(context, () {
+                                    getList();
+                                  })
+                                }),
                       ),
                     Row(
                       children: [
+                        if (MediaQuery.of(context).size.width <= 650)
+                          IconButton(
+                            icon: const Icon(Icons.playlist_add),
+                            onPressed: () {
+                              showCreatePlayListDialog(context, () {
+                                getList();
+                              });
+                            },
+                          ),
                         if (MediaQuery.of(context).size.width <= 650)
                           IconButton(
                             icon: const Icon(Icons.search),
@@ -190,10 +255,13 @@ class _HomePageState extends State<HomePage> {
                   Expanded(
                     child: isSmallScreen
                         ? ListView.builder(
-                            itemCount: 10, // 替换为实际的列表项数
+                            itemCount: items.length, // 替换为实际的列表项数
                             itemBuilder: (context, index) {
+                              var item = items[index];
                               return PlaylistItem(
-                                index: index,
+                                imageUrl: item.imgUrl,
+                                title: item.title,
+                                description: item.description,
                                 onTap: () {
                                   if (isSmallScreen) {
                                     Navigator.push(
@@ -201,8 +269,11 @@ class _HomePageState extends State<HomePage> {
                                       MaterialPageRoute(
                                         builder: (context) =>
                                             PlayListDetailPage(
+                                          isNet: item.isNet,
+                                          id: item.isNet
+                                              ? item.netId ?? 0
+                                              : item.id,
                                           top: 30,
-                                          index: index,
                                           onBack: () {
                                             Navigator.pop(context); // 返回上一页面
                                           },
@@ -230,12 +301,16 @@ class _HomePageState extends State<HomePage> {
                                 crossAxisSpacing: 10, // 列间距
                                 mainAxisSpacing: 10, // 行间距
                               ),
-                              itemCount: 10, // 替换为实际的列表项数
+                              itemCount: items.length, // 替换为实际的列表项数
                               itemBuilder: (context, index) {
+                                var item = items[index];
                                 return DesktopPlaylistItem(
-                                  index: index,
+                                  imageUrl: item.imgUrl,
+                                  title: item.title,
+                                  description: item.description,
                                   onTap: () {
                                     setState(() {
+                                      selectItem = item;
                                       _currentIndex = index; // 点击时更新索引
                                     });
                                   },
@@ -247,8 +322,12 @@ class _HomePageState extends State<HomePage> {
                 if (_currentIndex != -1)
                   Expanded(
                     child: PlayListDetailPage(
-                      index: _currentIndex,
+                      isNet: selectItem?.isNet ?? false,
+                      id: selectItem?.isNet == true
+                          ? selectItem?.netId ?? 0
+                          : selectItem?.id ?? 0,
                       onBack: () {
+                        getList();
                         setState(() {
                           _currentIndex = -1; // 返回到列表页面
                         });
@@ -382,7 +461,63 @@ class _BigPlayerPageState extends State<BigPlayerPage> {
     final themeColor = getHighestContrastColor(gradientColors);
     final screenWidth = MediaQuery.of(context).size.width;
     final imageSize = screenWidth > 600 ? screenWidth * 0.30 : 250.0; // 计算图片大小
-    return BlocBuilder<MusicPlayerBloc, MusicPlayerState>(
+    return BlocConsumer<MusicPlayerBloc, MusicPlayerState>(
+      listener: (context, state) async {
+        // 判断当前页面是否为弹窗页面，如果是，则弹出弹窗
+        if (state.showPlaylistDialog) {
+          // 判断当前页面是顶部页面
+          if (ModalRoute.of(context)?.isCurrent == true) {
+            final result = await showGeneralDialog<bool>(
+              context: context,
+              barrierColor: Colors.black.withOpacity(0.3),
+              barrierDismissible: true,
+              barrierLabel: '关闭',
+              transitionDuration: const Duration(milliseconds: 300),
+              pageBuilder: (context, animation, secondaryAnimation) {
+                return Stack(
+                  children: [
+                    Positioned(
+                      bottom: 20,
+                      right: 20,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: PlaylistDialogContent(
+                          onClose: () {
+                            Navigator.of(context).pop(true);
+                            togglePlaylistDialog(context);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+              transitionBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                final offsetAnimation = Tween<Offset>(
+                  begin: const Offset(1.0, 0.0),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeInOut,
+                ));
+
+                return SlideTransition(
+                  position: offsetAnimation,
+                  child: FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  ),
+                );
+              },
+            );
+
+            if (result == null) {
+              togglePlaylistDialog(context);
+            }
+          }
+        }
+      },
       builder: (context, state) {
         return Scaffold(
           body: Stack(
@@ -424,9 +559,7 @@ class _BigPlayerPageState extends State<BigPlayerPage> {
                         icon: const Icon(Icons.playlist_play),
                         color: themeColor,
                         onPressed: () {
-                          context
-                              .read<MusicPlayerBloc>()
-                              .add(TogglePlaylistEvent());
+                          togglePlaylistDialog(context);
                         },
                       )
                     ],
@@ -486,29 +619,19 @@ class _BigPlayerPageState extends State<BigPlayerPage> {
                             disableColor: Theme.of(context).disabledColor,
                             iconColor: themeColor,
                             onShufflePressed: () {
-                              context
-                                  .read<MusicPlayerBloc>()
-                                  .add(ToggleShuffleEvent());
+                              toggleShuffle(context);
                             },
                             onPlayPausePressed: () {
-                              context
-                                  .read<MusicPlayerBloc>()
-                                  .add(TogglePlayPauseEvent());
+                              togglePlayPause(context);
                             },
                             onLoopPressed: () {
-                              context
-                                  .read<MusicPlayerBloc>()
-                                  .add(ChangeLoopModeEvent());
+                              changeLoopMode(context);
                             },
                             onPreviousPressed: () {
-                              context
-                                  .read<MusicPlayerBloc>()
-                                  .add(PreviousTrackEvent());
+                              previousTrack(context);
                             },
                             onNextPressed: () {
-                              context
-                                  .read<MusicPlayerBloc>()
-                                  .add(NextTrackEvent());
+                              nextTrack(context);
                             },
                           ),
                           ProgressBar(
@@ -518,9 +641,7 @@ class _BigPlayerPageState extends State<BigPlayerPage> {
                             totalDuration: state.totalDuration,
                             textColor: themeColor,
                             onChanged: (value) {
-                              context
-                                  .read<MusicPlayerBloc>()
-                                  .add(UpdateProgressEvent(value));
+                              updateProgress(context, value);
                             },
                           ),
                         ],
@@ -546,74 +667,86 @@ class SearchResultsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3, // Tab 项的数量
-      child: Scaffold(
-        body: Stack(
-          children: [
-            // 返回按钮
-            if (showAppBar)
-              Positioned(
-                top: 30,
-                left: 10,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new),
-                  onPressed: () {
-                    Navigator.pop(context); // 返回上一页面
-                  },
+    final appConfigBloc = context.read<AppConfigBloc>();
+
+    return Scaffold(
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            bool isSmallScreen = constraints.maxWidth < 500; // 判断是否为小屏
+            return DefaultTabController(
+              length: 4, // Tab 项的数量
+              child: Scaffold(
+                body: Column(
+                  children: [
+                    // 顶部区域
+                    if (showAppBar)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20.0),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back_ios_new),
+                              onPressed: () {
+                                Navigator.pop(context); // 返回上一页面
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '$query ${S.current.search_tip}',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    TabBar(
+                      dividerColor: Colors.transparent,
+                      tabs: [
+                        Tab(text: S.current.songs),
+                        Tab(text: S.current.album),
+                        Tab(text: S.current.singer),
+                        Tab(text: S.current.song_list),
+                      ],
+                    ),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          TabContent(
+                            isBig: !isSmallScreen,
+                            content: S.current.songs,
+                            query: query,
+                            type: 1,
+                          ),
+                          TabContent(
+                            isBig: !isSmallScreen,
+                            content: S.current.album,
+                            query: query,
+                            type: 10,
+                          ),
+                          TabContent(
+                            isBig: !isSmallScreen,
+                            content: S.current.singer,
+                            query: query,
+                            type: 100,
+                          ),
+                          TabContent(
+                            isBig: !isSmallScreen,
+                            content: S.current.song_list,
+                            query: query,
+                            type: 1000,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            // 搜索提示和 TabBar
-            Positioned(
-              top: showAppBar ? 40 : 0,
-              left: 0,
-              right: 0,
-              child: Column(
-                children: [
-                  if (showAppBar)
-                    Text('$query ${S.current.search_tip}',
-                        style: Theme.of(context).textTheme.titleLarge),
-                  TabBar(
-                    dividerColor: Colors.transparent,
-                    tabs: [
-                      Tab(text: S.current.songs),
-                      Tab(text: S.current.album),
-                      Tab(text: S.current.singer),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            // TabBarView 内容
-            Positioned.fill(
-              top: 140, // 内容区域在 TabBar 下面
-              child: TabBarView(
-                children: [
-                  TabContent(content: S.current.songs),
-                  TabContent(content: S.current.album),
-                  TabContent(content: S.current.singer),
-                ],
-              ),
-            ),
-          ],
+            );
+          },
         ),
       ),
-    );
-  }
-}
-
-class TabContent extends StatelessWidget {
-  final String content;
-
-  const TabContent({super.key, required this.content});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        content,
-        style: const TextStyle(fontSize: 18),
-      ),
+      bottomNavigationBar: const MusicPlayerBar(),
     );
   }
 }

@@ -20,5 +20,14 @@
   "songs": "歌曲",
   "singer": "歌手",
   "album": "专辑",
-  "search_tip":"的搜索结果"
+  "song_list": "歌单",
+  "search_tip": "的搜索结果",
+  "no_search_result": "没有搜索结果",
+  "please_input_search_content": "请输入搜索内容",
+  "no_suggestions_available": "没有可用的建议",
+  "songs_not_find": "没有找到相关歌曲",
+  "album_not_find": "没有找到相关专辑",
+  "singer_not_find": "没有找到相关歌手",
+  "playlist_not_find": "没有找到相关歌单",
+  "album_detail": "专辑详情"
 }

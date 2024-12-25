@@ -1,21 +1,25 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:music_app/Api/HttpClient.dart';
+import 'package:music_app/Api/RequestEntry/MusicRequestParams.dart';
 import 'package:music_app/Player/MusicPlayerBloc.dart';
 import 'package:music_app/Player/MusicPlayerState.dart';
 
+import '../Player/PlayerBar.dart';
 import '../generated/l10n.dart';
 import 'CardMusicListItem.dart';
 
-class CustomDialogContent extends StatelessWidget {
+class PlaylistDialogContent extends StatelessWidget {
   final VoidCallback onClose;
 
-  const CustomDialogContent({super.key, required this.onClose});
+  const PlaylistDialogContent({super.key, required this.onClose});
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<MusicPlayerBloc, MusicPlayerState>(
       builder: (context, state) {
-        final queue = state.queue ?? []; // 确保 queue 不为 null
+        final queue = state.queue; // 确保 queue 不为 null
 
         return Container(
           padding: const EdgeInsets.all(16),
@@ -24,7 +28,7 @@ class CustomDialogContent extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 8,
                 offset: const Offset(2, 2),
               ),
@@ -52,9 +56,19 @@ class CustomDialogContent extends StatelessWidget {
                         itemCount: queue.length,
                         itemBuilder: (context, index) {
                           return CardMusicListItem(
-                            onTap: () {
+                            title: "${queue[index].name}",
+                            onTap: () async {
+                              final http = HTTP.getClient<MusicClient>();
+                              var result = await http.getMusic(
+                                  getMusicParams("${queue[index].id}"));
+                              print("${result.urlInfo?.url}");
+
+                              player.pause();
+
+                              player.play(UrlSource(result.urlInfo?.url ?? ""));
+
                               final snackBar = SnackBar(
-                                content: Text('播放 $index'),
+                                content: Text('播放 ${queue[index].name}'),
                                 backgroundColor: Colors.black54,
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
@@ -65,12 +79,9 @@ class CustomDialogContent extends StatelessWidget {
                               ScaffoldMessenger.of(context)
                                   .showSnackBar(snackBar);
                             },
-                            isGrid: false,
-                            imageUrl:
-                                'https://picsum.photos/300/300?random=$index',
-                            description: "description",
-                            onFirstButtonPressed: () => {},
-                            onSecondButtonPressed: () => {},
+                            imageUrl: "${queue[index].al?.picUrl}",
+                            description:
+                                "${queue[index].ar?.map((e) => e.name).join(",")}",
                           );
                         },
                       ),

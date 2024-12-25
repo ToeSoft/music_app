@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:music_app/Api/ResponseEntry/Song.dart';
 
 class MusicPlayerState extends Equatable {
   final bool isShuffleActive;
@@ -6,7 +7,7 @@ class MusicPlayerState extends Equatable {
   final int loopMode;
   final double currentPosition;
   final double totalDuration;
-  final List<String> queue;
+  final List<Song> queue;
   final bool showPlaylistDialog;
 
   const MusicPlayerState({
@@ -20,7 +21,7 @@ class MusicPlayerState extends Equatable {
   });
 
   MusicPlayerState copyWith({
-    List<String>? queue,
+    List<Song>? queue,
     bool? isShuffleActive,
     bool? isPlaying,
     int? loopMode,

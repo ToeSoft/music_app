@@ -250,11 +250,101 @@ class S {
     );
   }
 
+  /// `Song List`
+  String get song_list {
+    return Intl.message(
+      'Song List',
+      name: 'song_list',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `'s search result`
   String get search_tip {
     return Intl.message(
       '\'s search result',
       name: 'search_tip',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No search result`
+  String get no_search_result {
+    return Intl.message(
+      'No search result',
+      name: 'no_search_result',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please input search content`
+  String get please_input_search_content {
+    return Intl.message(
+      'Please input search content',
+      name: 'please_input_search_content',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No suggestions available`
+  String get no_suggestions_available {
+    return Intl.message(
+      'No suggestions available',
+      name: 'no_suggestions_available',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No songs found`
+  String get songs_not_find {
+    return Intl.message(
+      'No songs found',
+      name: 'songs_not_find',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No album found`
+  String get album_not_find {
+    return Intl.message(
+      'No album found',
+      name: 'album_not_find',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No singer found`
+  String get singer_not_find {
+    return Intl.message(
+      'No singer found',
+      name: 'singer_not_find',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No playlist found`
+  String get playlist_not_find {
+    return Intl.message(
+      'No playlist found',
+      name: 'playlist_not_find',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Album Detail`
+  String get album_detail {
+    return Intl.message(
+      'Album Detail',
+      name: 'album_detail',
       desc: '',
       args: [],
     );

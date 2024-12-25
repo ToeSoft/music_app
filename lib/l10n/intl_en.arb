@@ -20,5 +20,14 @@
   "songs": "Songs",
   "singer": "Singer",
   "album": "Album",
-  "search_tip": "'s search result"
+  "song_list": "Song List",
+  "search_tip": "'s search result",
+  "no_search_result": "No search result",
+  "please_input_search_content": "Please input search content",
+  "no_suggestions_available": "No suggestions available",
+  "songs_not_find": "No songs found",
+  "album_not_find": "No album found",
+  "singer_not_find": "No singer found",
+  "playlist_not_find": "No playlist found",
+  "album_detail": "Album Detail"
 }

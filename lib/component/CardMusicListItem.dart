@@ -4,20 +4,20 @@ import 'ImageNet.dart';
 
 class CardMusicListItem extends StatefulWidget {
   final String imageUrl; // 图片 URL
+  final String title;
   final String description; // 描述文字
-  final VoidCallback onFirstButtonPressed; // 第一个按钮的点击事件
-  final VoidCallback onSecondButtonPressed; // 第二个按钮的点击事件
-  final bool isGrid; // 是否显示为网格布局
+  final VoidCallback? onCollectingPressed; // 第一个按钮的点击事件
+  final bool showCollecting; // 是否显示第一个按钮
   final VoidCallback onTap; // 点击事件
 
   const CardMusicListItem({
     super.key,
     required this.imageUrl,
+    required this.title,
     required this.description,
-    required this.onFirstButtonPressed,
-    required this.onSecondButtonPressed,
+    this.onCollectingPressed,
     required this.onTap,
-    required this.isGrid,
+    this.showCollecting = false,
   });
 
   @override
@@ -73,13 +73,13 @@ class _CardMusicListItemState extends State<CardMusicListItem> {
                 ImageNet(imageUrl: widget.imageUrl),
                 const SizedBox(width: 12),
                 // 中间描述文字固定在左上角
-                Flexible(
+                Expanded(
                   child: Column(
                     mainAxisSize: MainAxisSize.min, // 高度由内容决定
                     crossAxisAlignment: CrossAxisAlignment.start, // 向左对齐
                     children: [
                       Text(
-                        widget.description,
+                        widget.title,
                         style: Theme.of(context).textTheme.titleMedium,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -93,22 +93,16 @@ class _CardMusicListItemState extends State<CardMusicListItem> {
                     ],
                   ),
                 ),
-                if (!widget.isGrid)
-                  Row(
-                    children: [
-                      // 第一个按钮
-                      TextButton(
-                        onPressed: widget.onFirstButtonPressed,
-                        child: const Text('按钮1'),
+                Row(
+                  children: [
+                    if (widget.showCollecting)
+                      IconButton(
+                        color: Theme.of(context).colorScheme.primary,
+                        icon: const Icon(Icons.favorite),
+                        onPressed: widget.onCollectingPressed,
                       ),
-                      const SizedBox(width: 8),
-                      // 第二个按钮
-                      TextButton(
-                        onPressed: widget.onSecondButtonPressed,
-                        child: const Text('按钮2'),
-                      ),
-                    ],
-                  ),
+                  ],
+                ),
               ],
             ),
           ),

@@ -13,7 +13,7 @@ doc/api/
 
 # dotenv environment variables file
 .env*
-
+!.env.example
 # Avoid committing generated Javascript files:
 *.dart.js
 *.info.json      # Produced by the --dump-info flag.
@@ -34,9 +34,11 @@ doc/api/
 *.swp
 .DS_Store
 .atom/
+.build/
 .buildlog/
 .history
 .svn/
+.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related

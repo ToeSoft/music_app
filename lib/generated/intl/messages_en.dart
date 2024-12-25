@@ -23,6 +23,9 @@ class MessageLookup extends MessageLookupByLibrary {
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "album": MessageLookupByLibrary.simpleMessage("Album"),
+        "album_detail": MessageLookupByLibrary.simpleMessage("Album Detail"),
+        "album_not_find":
+            MessageLookupByLibrary.simpleMessage("No album found"),
         "appConfig_FontSize":
             MessageLookupByLibrary.simpleMessage("App Font Size"),
         "appConfig_Language":
@@ -40,16 +43,29 @@ class MessageLookup extends MessageLookupByLibrary {
         "close": MessageLookupByLibrary.simpleMessage("Close"),
         "no_data": MessageLookupByLibrary.simpleMessage("No Data"),
         "no_more_data": MessageLookupByLibrary.simpleMessage("No More Data"),
+        "no_search_result":
+            MessageLookupByLibrary.simpleMessage("No search result"),
+        "no_suggestions_available":
+            MessageLookupByLibrary.simpleMessage("No suggestions available"),
         "playlist": MessageLookupByLibrary.simpleMessage("Playlist"),
         "playlist_empty":
             MessageLookupByLibrary.simpleMessage("Playlist is empty"),
+        "playlist_not_find":
+            MessageLookupByLibrary.simpleMessage("No playlist found"),
+        "please_input_search_content":
+            MessageLookupByLibrary.simpleMessage("Please input search content"),
         "search_hint":
             MessageLookupByLibrary.simpleMessage("Please enter search content"),
         "search_tip": MessageLookupByLibrary.simpleMessage("\'s search result"),
         "setting_description": MessageLookupByLibrary.simpleMessage("Setting"),
         "setting_title": MessageLookupByLibrary.simpleMessage("Setting"),
         "singer": MessageLookupByLibrary.simpleMessage("Singer"),
+        "singer_not_find":
+            MessageLookupByLibrary.simpleMessage("No singer found"),
+        "song_list": MessageLookupByLibrary.simpleMessage("Song List"),
         "songs": MessageLookupByLibrary.simpleMessage("Songs"),
+        "songs_not_find":
+            MessageLookupByLibrary.simpleMessage("No songs found"),
         "title": MessageLookupByLibrary.simpleMessage("Music App")
       };
 }

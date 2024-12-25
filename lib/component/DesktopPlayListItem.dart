@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:music_app/component/ImageNet.dart';
 
 class DesktopPlaylistItem extends StatelessWidget {
-  final int index;
   final VoidCallback onTap;
+  final String imageUrl;
+  final String title;
+  final String description;
 
   const DesktopPlaylistItem({
     super.key,
-    required this.index,
     required this.onTap,
+    required this.imageUrl,
+    required this.title,
+    required this.description,
   });
 
   @override
@@ -19,7 +23,7 @@ class DesktopPlaylistItem extends StatelessWidget {
         children: [
           // 背景图片
           ImageNet(
-            imageUrl: 'https://picsum.photos/300/300?random=$index',
+            imageUrl: imageUrl,
             width: double.infinity, // 使图片填充整个容器
             height: double.infinity, // 保持高度自适应
           ),
@@ -38,15 +42,27 @@ class DesktopPlaylistItem extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // 左边的文本
-                  Text(
-                    'Left $index',
-                    style: Theme.of(context).primaryTextTheme.bodyMedium,
+                  // 左边的文本（省略号显示）
+                  Flexible(
+                    flex: 2,
+                    child: Text(
+                      title,
+                      style: Theme.of(context).primaryTextTheme.bodyMedium,
+                      overflow: TextOverflow.ellipsis, // 超出时显示省略号
+                      maxLines: 1, // 限制为单行显示
+                    ),
                   ),
-                  // 右边的文本
-                  Text(
-                    'Right $index',
-                    style: Theme.of(context).primaryTextTheme.bodyMedium,
+                  const SizedBox(width: 8), // 添加间距
+                  // 右边的文本（隐藏）
+                  Flexible(
+                    flex: 1,
+                    child: Text(
+                      description,
+                      style: Theme.of(context).primaryTextTheme.bodyMedium,
+                      overflow: TextOverflow.clip, // 超出部分直接裁剪
+                      maxLines: 1, // 限制为单行显示
+                      textAlign: TextAlign.right, // 右对齐
+                    ),
                   ),
                 ],
               ),

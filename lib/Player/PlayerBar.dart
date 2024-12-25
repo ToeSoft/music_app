@@ -1,16 +1,17 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../component/CustomDialogContent.dart';
+import '../component/PlaylistDialogContent.dart';
 import '../main.dart';
 import 'AlbumInfo.dart';
 import 'ControlButtons.dart';
 import 'MusicPlayerBloc.dart';
-import 'MusicPlayerEvent.dart';
 import 'MusicPlayerState.dart';
+import 'PlayerController.dart';
 import 'ProgressBar.dart';
 import 'RightMenuButton.dart';
-
+final player = AudioPlayer();
 class MusicPlayerBar extends StatelessWidget {
   const MusicPlayerBar({super.key});
 
@@ -62,58 +63,58 @@ class MusicPlayerBar extends StatelessWidget {
 
     return BlocConsumer<MusicPlayerBloc, MusicPlayerState>(
       listener: (context, state) async {
+        // 判断当前页面是否为弹窗页面，如果是，则弹出弹窗
         if (state.showPlaylistDialog) {
-          final result = await showGeneralDialog<bool>(
-            context: context,
-            barrierColor: Colors.black.withOpacity(0.3),
-            // 半透明背景
-            barrierDismissible: true,
-            // 点击背景可关闭
-            barrierLabel: '关闭',
-            transitionDuration: const Duration(milliseconds: 300),
-            pageBuilder: (context, animation, secondaryAnimation) {
-              return Stack(
-                children: [
-                  Positioned(
-                    bottom: 20, // 距离屏幕底部的位置
-                    right: 20, // 距离屏幕右侧的位置
-                    child: Material(
-                      color: Colors.transparent,
-                      child: CustomDialogContent(
-                        onClose: () {
-                          Navigator.of(context).pop(true);
-                          context
-                              .read<MusicPlayerBloc>()
-                              .add(TogglePlaylistEvent());
-                        },
+          // 判断当前页面是顶部页面
+          if (ModalRoute.of(context)?.isCurrent == true) {
+            final result = await showGeneralDialog<bool>(
+              context: context,
+              barrierColor: Colors.black.withOpacity(0.3),
+              barrierDismissible: true,
+              barrierLabel: '关闭',
+              transitionDuration: const Duration(milliseconds: 300),
+              pageBuilder: (context, animation, secondaryAnimation) {
+                return Stack(
+                  children: [
+                    Positioned(
+                      bottom: 20,
+                      right: 20,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: PlaylistDialogContent(
+                          onClose: () {
+                            Navigator.of(context).pop(true);
+                            togglePlaylistDialog(context);
+                          },
+                        ),
                       ),
                     ),
+                  ],
+                );
+              },
+              transitionBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                final offsetAnimation = Tween<Offset>(
+                  begin: const Offset(1.0, 0.0),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeInOut,
+                ));
+
+                return SlideTransition(
+                  position: offsetAnimation,
+                  child: FadeTransition(
+                    opacity: animation,
+                    child: child,
                   ),
-                ],
-              );
-            },
-            transitionBuilder: (context, animation, secondaryAnimation, child) {
-              final offsetAnimation = Tween<Offset>(
-                begin: const Offset(1.0, 0.0), // 从右下角进入
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeInOut,
-              ));
+                );
+              },
+            );
 
-              return SlideTransition(
-                position: offsetAnimation,
-                child: FadeTransition(
-                  opacity: animation,
-                  child: child,
-                ),
-              );
-            },
-          );
-
-          // 当弹窗关闭时触发回调逻辑
-          if (result == null) {
-            context.read<MusicPlayerBloc>().add(TogglePlaylistEvent());
+            if (result == null) {
+              togglePlaylistDialog(context);
+            }
           }
         }
       },
@@ -163,29 +164,19 @@ class MusicPlayerBar extends StatelessWidget {
                                             Theme.of(context).disabledColor,
                                         iconColor: iconColor,
                                         onShufflePressed: () {
-                                          context
-                                              .read<MusicPlayerBloc>()
-                                              .add(ToggleShuffleEvent());
+                                          toggleShuffle(context);
                                         },
                                         onPlayPausePressed: () {
-                                          context
-                                              .read<MusicPlayerBloc>()
-                                              .add(TogglePlayPauseEvent());
+                                          togglePlayPause(context);
                                         },
                                         onLoopPressed: () {
-                                          context
-                                              .read<MusicPlayerBloc>()
-                                              .add(ChangeLoopModeEvent());
+                                          changeLoopMode(context);
                                         },
                                         onPreviousPressed: () {
-                                          context
-                                              .read<MusicPlayerBloc>()
-                                              .add(PreviousTrackEvent());
+                                          previousTrack(context);
                                         },
                                         onNextPressed: () {
-                                          context
-                                              .read<MusicPlayerBloc>()
-                                              .add(NextTrackEvent());
+                                          nextTrack(context);
                                         },
                                       ),
                                       ProgressBar(
@@ -197,9 +188,7 @@ class MusicPlayerBar extends StatelessWidget {
                                         totalDuration: state.totalDuration,
                                         textColor: textColor,
                                         onChanged: (value) {
-                                          context
-                                              .read<MusicPlayerBloc>()
-                                              .add(UpdateProgressEvent(value));
+                                          updateProgress(context, value);
                                         },
                                       ),
                                     ],
@@ -212,14 +201,10 @@ class MusicPlayerBar extends StatelessWidget {
                           child: RightMenuButton(
                             isPlaying: state.isPlaying,
                             onPlayPausePressed: () {
-                              context
-                                  .read<MusicPlayerBloc>()
-                                  .add(TogglePlayPauseEvent());
+                              togglePlayPause(context);
                             },
                             onPlaylistPressed: () {
-                              context
-                                  .read<MusicPlayerBloc>()
-                                  .add(TogglePlaylistEvent());
+                              togglePlaylistDialog(context);
                             },
                             onBigPlayerPressed: () {
                               toBigPlayerPage();
