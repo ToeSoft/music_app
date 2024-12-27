@@ -7,7 +7,11 @@ class CardMusicListItem extends StatefulWidget {
   final String title;
   final String description; // 描述文字
   final VoidCallback? onCollectingPressed; // 第一个按钮的点击事件
+  final VoidCallback? onRemovePressed;
+  final VoidCallback? onAddPressed;
   final bool showCollecting; // 是否显示第一个按钮
+  final bool showRemove;
+  final bool showAdd;
   final VoidCallback onTap; // 点击事件
 
   const CardMusicListItem({
@@ -16,8 +20,12 @@ class CardMusicListItem extends StatefulWidget {
     required this.title,
     required this.description,
     this.onCollectingPressed,
+    this.onRemovePressed,
+    this.onAddPressed,
     required this.onTap,
     this.showCollecting = false,
+    this.showRemove = false,
+    this.showAdd = false,
   });
 
   @override
@@ -71,7 +79,7 @@ class _CardMusicListItemState extends State<CardMusicListItem> {
               children: [
                 // 左侧图片
                 ImageNet(imageUrl: widget.imageUrl),
-                const SizedBox(width: 12),
+                const SizedBox(width: 5),
                 // 中间描述文字固定在左上角
                 Expanded(
                   child: Column(
@@ -93,16 +101,40 @@ class _CardMusicListItemState extends State<CardMusicListItem> {
                     ],
                   ),
                 ),
-                Row(
+                Column(
                   children: [
                     if (widget.showCollecting)
-                      IconButton(
-                        color: Theme.of(context).colorScheme.primary,
-                        icon: const Icon(Icons.favorite),
-                        onPressed: widget.onCollectingPressed,
-                      ),
+                      SizedBox(
+                          width: 35,
+                          height: 30,
+                          child: IconButton(
+                            color: Theme.of(context).colorScheme.primary,
+                            icon: const Icon(Icons.favorite),
+                            iconSize: 20,
+                            onPressed: widget.onCollectingPressed,
+                          )),
+                    if (widget.showRemove)
+                      SizedBox(
+                          width: 35,
+                          height: 30,
+                          child: IconButton(
+                            color: Theme.of(context).colorScheme.primary,
+                            icon: const Icon(Icons.delete_sweep),
+                            iconSize: 20,
+                            onPressed: widget.onRemovePressed,
+                          )),
+                    if (widget.showAdd)
+                      SizedBox(
+                          width: 35,
+                          height: 30,
+                          child: IconButton(
+                            color: Theme.of(context).colorScheme.primary,
+                            icon: const Icon(Icons.add),
+                            iconSize: 20,
+                            onPressed: widget.onAddPressed,
+                          )),
                   ],
-                ),
+                )
               ],
             ),
           ),

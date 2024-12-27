@@ -32,7 +32,7 @@ class AlbumInfo extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '正在播放：$songName',
+                songName,
                 style: TextStyle(color: textColor, fontSize: 16),
                 overflow: TextOverflow.ellipsis,
               ),

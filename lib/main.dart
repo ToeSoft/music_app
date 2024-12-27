@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -25,9 +24,9 @@ import 'Player/PlayerBar.dart';
 import 'Player/PlayerController.dart';
 import 'Player/ProgressBar.dart';
 import 'TabContent.dart';
-import 'component/PlaylistDialogContent.dart';
 import 'component/DesktopPlayListItem.dart';
 import 'component/MySearchBar.dart';
+import 'component/PlaylistDialogContent.dart';
 import 'component/PlaylistItem.dart';
 import "generated/l10n.dart";
 
@@ -130,6 +129,26 @@ class _HomePageState extends State<HomePage> with RouteAware {
   void initState() {
     super.initState();
     getList();
+
+    // // 设置播放器监听器
+    // player.onPlayerStateChanged.listen((PlayerState state) {
+    //   // 播放状态发生变化时更新 Bloc
+    //   context.read<MusicPlayerBloc>().add(UpdatePlayerStateEvent(state));
+    // });
+
+    player.onDurationChanged.listen((Duration duration) {
+      // 更新歌曲的总时长
+      setDuration(context, duration.inSeconds.toDouble());
+    });
+
+    player.onPositionChanged.listen((Duration position) {
+      // 更新当前播放位置
+      updateProgress(context, position.inSeconds.toDouble());
+    });
+
+    player.onPlayerComplete.listen((_) {
+      onPlayCompletion(context);
+    });
   }
 
   @override
@@ -141,6 +160,8 @@ class _HomePageState extends State<HomePage> with RouteAware {
   @override
   void dispose() {
     routeObserver.unsubscribe(this);
+    // 释放播放器资源
+    player.dispose();
     super.dispose();
   }
 
@@ -410,49 +431,58 @@ class BigPlayerPage extends StatefulWidget {
 }
 
 class _BigPlayerPageState extends State<BigPlayerPage> {
-  List<Color> gradientColors = [
+  List<Color> gradientColors = const [
     Colors.grey,
     Colors.grey,
     Colors.grey,
     Colors.white,
     Colors.white
   ]; // 默认渐变颜色
-  final String imageUrl =
-      'https://picsum.photos/800/800?random=${Random().nextInt(1000)}'; // 动态网络图片 URL
+  String? _lastProcessedImageUrl;
 
   @override
   void initState() {
     super.initState();
-    _updateGradientColors();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final initialSongUrl =
+          context.read<MusicPlayerBloc>().state.currentSong?.al?.picUrl;
+      if (initialSongUrl != null) {
+        _updateGradientColors(initialSongUrl);
+      }
+    });
   }
 
-  Future<void> _updateGradientColors() async {
+  Future<void> _updateGradientColors(String imageUrl) async {
+    if (imageUrl == _lastProcessedImageUrl) return;
+    _lastProcessedImageUrl = imageUrl;
+
     try {
-      final ImageProvider imageProvider = NetworkImage(imageUrl);
+      final paletteGenerator = await _generatePalette(imageUrl);
 
-      // 确保图片加载完成
-      final imageStream = imageProvider.resolve(const ImageConfiguration());
-      final completer = Completer<void>();
-      imageStream.addListener(
-        ImageStreamListener((_, __) => completer.complete()),
-      );
-      await completer.future;
-
-      // 提取颜色
-      final paletteGenerator = await PaletteGenerator.fromImageProvider(
-        imageProvider,
-        size: const Size(500, 500), // 限制分析范围以提升性能
-      );
-
-      final colors = paletteGenerator.colors.toList();
-      if (colors.isNotEmpty) {
-        setState(() {
-          gradientColors = colors.take(10).toList();
-        });
+      if (paletteGenerator.colors.isNotEmpty) {
+        final colors = paletteGenerator.colors.take(5).toList();
+        if (mounted) {
+          _updateColorsIfChanged(colors);
+        }
       }
     } catch (e) {
-      // 如果提取颜色失败，保持默认颜色
       debugPrint('Failed to fetch dominant colors: $e');
+    }
+  }
+
+  Future<PaletteGenerator> _generatePalette(String imageUrl) async {
+    final imageProvider = NetworkImage(imageUrl);
+    return await PaletteGenerator.fromImageProvider(
+      imageProvider,
+      size: const Size(500, 500),
+    );
+  }
+
+  void _updateColorsIfChanged(List<Color> newColors) {
+    if (!listEquals(gradientColors, newColors)) {
+      setState(() {
+        gradientColors = newColors;
+      });
     }
   }
 
@@ -460,197 +490,185 @@ class _BigPlayerPageState extends State<BigPlayerPage> {
   Widget build(BuildContext context) {
     final themeColor = getHighestContrastColor(gradientColors);
     final screenWidth = MediaQuery.of(context).size.width;
-    final imageSize = screenWidth > 600 ? screenWidth * 0.30 : 250.0; // 计算图片大小
+    final imageSize = screenWidth > 600 ? screenWidth * 0.30 : 250.0;
+
     return BlocConsumer<MusicPlayerBloc, MusicPlayerState>(
       listener: (context, state) async {
-        // 判断当前页面是否为弹窗页面，如果是，则弹出弹窗
-        if (state.showPlaylistDialog) {
-          // 判断当前页面是顶部页面
-          if (ModalRoute.of(context)?.isCurrent == true) {
-            final result = await showGeneralDialog<bool>(
-              context: context,
-              barrierColor: Colors.black.withOpacity(0.3),
-              barrierDismissible: true,
-              barrierLabel: '关闭',
-              transitionDuration: const Duration(milliseconds: 300),
-              pageBuilder: (context, animation, secondaryAnimation) {
-                return Stack(
-                  children: [
-                    Positioned(
-                      bottom: 20,
-                      right: 20,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: PlaylistDialogContent(
-                          onClose: () {
-                            Navigator.of(context).pop(true);
-                            togglePlaylistDialog(context);
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-              transitionBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                final offsetAnimation = Tween<Offset>(
-                  begin: const Offset(1.0, 0.0),
-                  end: Offset.zero,
-                ).animate(CurvedAnimation(
-                  parent: animation,
-                  curve: Curves.easeInOut,
-                ));
+        if (state.currentSong?.al?.picUrl != null) {
+          await _updateGradientColors(state.currentSong!.al!.picUrl!);
+        }
 
-                return SlideTransition(
-                  position: offsetAnimation,
-                  child: FadeTransition(
-                    opacity: animation,
-                    child: child,
-                  ),
-                );
-              },
-            );
-
-            if (result == null) {
-              togglePlaylistDialog(context);
-            }
-          }
+        if (state.showPlaylistDialog && ModalRoute.of(context)?.isCurrent == true) {
+          final result = await _showPlaylistDialog(context);
+          if (result == null) togglePlaylistDialog(context);
         }
       },
       builder: (context, state) {
         return Scaffold(
           body: Stack(
             children: [
-              // 渐变背景层
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      colors: [
-                        gradientColors[0],
-                        gradientColors[1],
-                        gradientColors[2],
-                      ],
-                      center: Alignment.center, // 渐变从中心开始
-                      radius: 2, // 控制渐变范围
-                    ),
-                  ),
-                ),
-              ),
-              // 左上角和右上角返回按钮
-              Positioned(
-                top: 30,
-                left: 10,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new),
-                  color: themeColor,
-                  onPressed: () {
-                    Navigator.pop(context); // 返回上一页面
+              _buildGradientBackground(),
+              _buildTopButtons(themeColor),
+              _buildContent(state, themeColor, imageSize),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGradientBackground() {
+    return Positioned.fill(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            colors: gradientColors,
+            center: Alignment.center,
+            radius: 2,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopButtons(Color themeColor) {
+    return Positioned(
+      top: 30,
+      left: 10,
+      child: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new),
+        color: themeColor,
+        onPressed: () => Navigator.pop(context),
+      ),
+    );
+  }
+
+  Widget _buildContent(MusicPlayerState state, Color themeColor, double imageSize) {
+    return Column(
+      children: [
+        Expanded(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildAlbumImage(state, imageSize),
+                const SizedBox(height: 16),
+                _buildSongInfo(state, themeColor),
+              ],
+            ),
+          ),
+        ),
+        _buildControls(state, themeColor),
+      ],
+    );
+  }
+
+  Widget _buildAlbumImage(MusicPlayerState state, double imageSize) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16.0),
+      child: Image.network(
+        state.currentSong?.al?.picUrl ?? 'https://picsum.photos/200/200',
+        width: imageSize,
+        height: imageSize,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  Widget _buildSongInfo(MusicPlayerState state, Color themeColor) {
+    return Column(
+      children: [
+        Text(
+          state.currentSong?.name ?? S.current.song_name,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(color: themeColor),
+          textAlign: TextAlign.center,
+        ),
+        Text(
+          state.currentSong?.ar?.map((e) => e.name).join(",") ?? S.current.singer_name,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: themeColor),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildControls(MusicPlayerState state, Color themeColor) {
+    return SizedBox(
+      height: 120,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ControlButtons(
+              isBig: true,
+              isShuffleActive: state.isShuffleActive,
+              isPlaying: state.isPlaying,
+              loopMode: state.loopMode,
+              shuffleActiveColor: themeColor,
+              disableColor: Theme.of(context).disabledColor,
+              iconColor: themeColor,
+              onShufflePressed: () => toggleShuffle(context),
+              onPlayPausePressed: () => togglePlayPause(context),
+              onLoopPressed: () => changeLoopMode(context),
+              onPreviousPressed: () => previousTrack(context),
+              onNextPressed: () => nextTrack(context),
+            ),
+            ProgressBar(
+              isBig: true,
+              gradientColors: [themeColor, themeColor],
+              currentPosition: state.currentPosition,
+              totalDuration: state.totalDuration,
+              textColor: themeColor,
+              onChanged: (value) {
+                player.seek(Duration(milliseconds: value.toInt()));
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<bool?> _showPlaylistDialog(BuildContext context) async {
+    return await showGeneralDialog<bool>(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.3),
+      barrierDismissible: true,
+      barrierLabel: '关闭',
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Stack(
+          children: [
+            Positioned(
+              bottom: 20,
+              right: 20,
+              child: Material(
+                color: Colors.transparent,
+                child: PlaylistDialogContent(
+                  onClose: () {
+                    Navigator.of(context).pop(true);
+                    togglePlaylistDialog(context);
                   },
                 ),
               ),
-              Positioned(
-                  top: 30,
-                  right: 10,
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.playlist_play),
-                        color: themeColor,
-                        onPressed: () {
-                          togglePlaylistDialog(context);
-                        },
-                      )
-                    ],
-                  )),
-              // 内容层
-              Column(
-                children: [
-                  Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // 图片显示
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(16.0), // 圆角图片
-                            child: Image.network(
-                              imageUrl,
-                              width: imageSize, // 动态宽度
-                              height: imageSize, // 动态高度
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          const SizedBox(height: 16), // 间距
-                          // 文本描述
-                          Text(
-                            'Song Name', // 示例文字
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(color: themeColor),
-                            textAlign: TextAlign.center,
-                          ),
-                          Text(
-                            'Song Name', // 示例文字
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(color: themeColor),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 120,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ControlButtons(
-                            isBig: true,
-                            isShuffleActive: state.isShuffleActive,
-                            isPlaying: state.isPlaying,
-                            loopMode: state.loopMode,
-                            shuffleActiveColor: themeColor,
-                            disableColor: Theme.of(context).disabledColor,
-                            iconColor: themeColor,
-                            onShufflePressed: () {
-                              toggleShuffle(context);
-                            },
-                            onPlayPausePressed: () {
-                              togglePlayPause(context);
-                            },
-                            onLoopPressed: () {
-                              changeLoopMode(context);
-                            },
-                            onPreviousPressed: () {
-                              previousTrack(context);
-                            },
-                            onNextPressed: () {
-                              nextTrack(context);
-                            },
-                          ),
-                          ProgressBar(
-                            isBig: true,
-                            gradientColors: [themeColor, themeColor],
-                            currentPosition: state.currentPosition,
-                            totalDuration: state.totalDuration,
-                            textColor: themeColor,
-                            onChanged: (value) {
-                              updateProgress(context, value);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
+          ],
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final offsetAnimation = Tween<Offset>(
+          begin: const Offset(1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeInOut,
+        ));
+
+        return SlideTransition(
+          position: offsetAnimation,
+          child: FadeTransition(
+            opacity: animation,
+            child: child,
           ),
         );
       },

@@ -73,8 +73,16 @@ class SongInfo {
     this.cover,
   });
 
-  factory SongInfo.fromJson(Map<String, dynamic> json) =>
-      _$SongInfoFromJson(json);
+  factory SongInfo.fromJson(Map<String, dynamic> json) {
+    return SongInfo(
+      name: _parseString(json['name']),
+      alia: _parseString(json['alia']),
+      artist: _parseString(json['artist']),
+      album: _parseString(json['album']),
+      level: _parseString(json['level']),
+      cover: _parseString(json['cover']),
+    );
+  }
 
   Map<String, dynamic> toJson() => _$SongInfoToJson(this);
 
@@ -94,6 +102,19 @@ class SongInfo {
       level: level ?? this.level,
       cover: cover ?? this.cover,
     );
+  }
+
+  static String? _parseString(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+    if (value is String) {
+      return value;
+    }
+    if (value is num) {
+      return value.toString();
+    }
+    throw FormatException('Unexpected value type: ${value.runtimeType}');
   }
 }
 

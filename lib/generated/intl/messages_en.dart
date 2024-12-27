@@ -22,10 +22,13 @@ class MessageLookup extends MessageLookupByLibrary {
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
+        "add": MessageLookupByLibrary.simpleMessage("Add"),
         "album": MessageLookupByLibrary.simpleMessage("Album"),
         "album_detail": MessageLookupByLibrary.simpleMessage("Album Detail"),
         "album_not_find":
             MessageLookupByLibrary.simpleMessage("No album found"),
+        "already_collected":
+            MessageLookupByLibrary.simpleMessage("Already collected"),
         "appConfig_FontSize":
             MessageLookupByLibrary.simpleMessage("App Font Size"),
         "appConfig_Language":
@@ -40,32 +43,63 @@ class MessageLookup extends MessageLookupByLibrary {
         "appConfig_test": MessageLookupByLibrary.simpleMessage("test"),
         "appConfig_title":
             MessageLookupByLibrary.simpleMessage("App Configuration"),
+        "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
         "close": MessageLookupByLibrary.simpleMessage("Close"),
+        "collect_success":
+            MessageLookupByLibrary.simpleMessage("Collect success"),
+        "create_playlist":
+            MessageLookupByLibrary.simpleMessage("Create Playlist"),
+        "create_playlist_success":
+            MessageLookupByLibrary.simpleMessage("Create playlist success"),
         "no_data": MessageLookupByLibrary.simpleMessage("No Data"),
         "no_more_data": MessageLookupByLibrary.simpleMessage("No More Data"),
         "no_search_result":
             MessageLookupByLibrary.simpleMessage("No search result"),
         "no_suggestions_available":
             MessageLookupByLibrary.simpleMessage("No suggestions available"),
+        "pl_enter_description": MessageLookupByLibrary.simpleMessage(
+            "Please enter playlist description"),
+        "pl_enter_title":
+            MessageLookupByLibrary.simpleMessage("Please enter playlist title"),
+        "pl_select_playlist": MessageLookupByLibrary.simpleMessage(
+            "Please select the playlist to collect"),
+        "pl_upload_cover":
+            MessageLookupByLibrary.simpleMessage("Please upload cover image"),
+        "play": MessageLookupByLibrary.simpleMessage("Play"),
         "playlist": MessageLookupByLibrary.simpleMessage("Playlist"),
+        "playlist_description":
+            MessageLookupByLibrary.simpleMessage("Description"),
         "playlist_empty":
             MessageLookupByLibrary.simpleMessage("Playlist is empty"),
         "playlist_not_find":
             MessageLookupByLibrary.simpleMessage("No playlist found"),
+        "playlist_title": MessageLookupByLibrary.simpleMessage("Title"),
         "please_input_search_content":
             MessageLookupByLibrary.simpleMessage("Please input search content"),
+        "save": MessageLookupByLibrary.simpleMessage("Save"),
         "search_hint":
             MessageLookupByLibrary.simpleMessage("Please enter search content"),
         "search_tip": MessageLookupByLibrary.simpleMessage("\'s search result"),
+        "select_cover": MessageLookupByLibrary.simpleMessage("Select Cover"),
         "setting_description": MessageLookupByLibrary.simpleMessage("Setting"),
         "setting_title": MessageLookupByLibrary.simpleMessage("Setting"),
         "singer": MessageLookupByLibrary.simpleMessage("Singer"),
+        "singer_name": MessageLookupByLibrary.simpleMessage("Singer Name"),
         "singer_not_find":
             MessageLookupByLibrary.simpleMessage("No singer found"),
         "song_list": MessageLookupByLibrary.simpleMessage("Song List"),
+        "song_name": MessageLookupByLibrary.simpleMessage("Song Name"),
         "songs": MessageLookupByLibrary.simpleMessage("Songs"),
         "songs_not_find":
             MessageLookupByLibrary.simpleMessage("No songs found"),
-        "title": MessageLookupByLibrary.simpleMessage("Music App")
+        "tap_to_select_cover":
+            MessageLookupByLibrary.simpleMessage("Tap to select cover"),
+        "title": MessageLookupByLibrary.simpleMessage("Music App"),
+        "title_cant_not_be_null":
+            MessageLookupByLibrary.simpleMessage("Title can\'t be null"),
+        "upload_cover_fail":
+            MessageLookupByLibrary.simpleMessage("Cover upload failed"),
+        "upload_cover_success":
+            MessageLookupByLibrary.simpleMessage("Cover uploaded successfully")
       };
 }

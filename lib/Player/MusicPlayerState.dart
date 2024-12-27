@@ -9,6 +9,8 @@ class MusicPlayerState extends Equatable {
   final double totalDuration;
   final List<Song> queue;
   final bool showPlaylistDialog;
+  final Song? currentSong;
+  final bool isLoaded;
 
   const MusicPlayerState({
     required this.showPlaylistDialog,
@@ -18,6 +20,8 @@ class MusicPlayerState extends Equatable {
     required this.loopMode,
     required this.currentPosition,
     required this.totalDuration,
+    required this.currentSong,
+    required this.isLoaded,
   });
 
   MusicPlayerState copyWith({
@@ -28,6 +32,8 @@ class MusicPlayerState extends Equatable {
     double? currentPosition,
     double? totalDuration,
     bool? showPlaylistDialog,
+    Song? currentSong,
+    bool? isLoaded,
   }) {
     return MusicPlayerState(
       queue: queue ?? this.queue,
@@ -37,10 +43,21 @@ class MusicPlayerState extends Equatable {
       currentPosition: currentPosition ?? this.currentPosition,
       totalDuration: totalDuration ?? this.totalDuration,
       showPlaylistDialog: showPlaylistDialog ?? this.showPlaylistDialog,
+      currentSong: currentSong ?? this.currentSong,
+      isLoaded: isLoaded ?? this.isLoaded,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [isShuffleActive, isPlaying, loopMode, currentPosition, totalDuration, queue, showPlaylistDialog];
+  List<Object?> get props => [
+        isShuffleActive,
+        isPlaying,
+        loopMode,
+        currentPosition,
+        totalDuration,
+        queue,
+        showPlaylistDialog,
+        currentSong,
+        isLoaded,
+      ];
 }

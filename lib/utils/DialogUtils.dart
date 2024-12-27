@@ -28,16 +28,16 @@ void showCreatePlayListDialog(BuildContext context, VoidCallback onFinish) {
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: const Text('创建播放列表'),
+            title: Text(S.current.create_playlist),
             content: SizedBox(
               width: screenWidth > 600 ? 500 : screenWidth * 0.9,
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      '选择封面',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    Text(
+                      S.current.select_cover,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Center(
@@ -67,9 +67,11 @@ void showCreatePlayListDialog(BuildContext context, VoidCallback onFinish) {
                                             uploadResponse.data?.url;
                                       });
                                     }
-                                    Toast.show(context, '封面上传成功');
+                                    Toast.show(context,
+                                        S.current.upload_cover_success);
                                   } catch (e) {
-                                    Toast.show(context, '封面上传失败');
+                                    Toast.show(
+                                        context, S.current.upload_cover_fail);
                                   }
                                 }
                               },
@@ -81,10 +83,11 @@ void showCreatePlayListDialog(BuildContext context, VoidCallback onFinish) {
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(color: Colors.grey),
                                 ),
-                                child: const Center(
+                                child: Center(
                                   child: Text(
-                                    '点击选择封面',
-                                    style: TextStyle(color: Colors.black54),
+                                    S.current.tap_to_select_cover,
+                                    style:
+                                        const TextStyle(color: Colors.black54),
                                   ),
                                 ),
                               ),
@@ -119,30 +122,30 @@ void showCreatePlayListDialog(BuildContext context, VoidCallback onFinish) {
                             ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      '标题',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    Text(
+                      S.current.playlist_title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: titleController,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: '请输入播放列表标题',
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        hintText: S.current.pl_enter_title,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      '简介',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    Text(
+                      S.current.playlist_description,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: descriptionController,
                       maxLines: 5,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: '请输入播放列表简介',
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        hintText: S.current.pl_enter_description,
                       ),
                     ),
                   ],
@@ -154,18 +157,18 @@ void showCreatePlayListDialog(BuildContext context, VoidCallback onFinish) {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: const Text('取消'),
+                child: Text(S.current.cancel),
               ),
               ElevatedButton(
                 onPressed: () {
                   final title = titleController.text.trim();
                   final description = descriptionController.text.trim();
                   if (title.isEmpty) {
-                    Toast.show(context, '标题不能为空');
+                    Toast.show(context, S.current.title_cant_not_be_null);
                     return;
                   }
                   if (uploadedImageUrl == null) {
-                    Toast.show(context, '请上传封面图片');
+                    Toast.show(context, S.current.pl_upload_cover);
                     return;
                   }
                   database
@@ -177,12 +180,12 @@ void showCreatePlayListDialog(BuildContext context, VoidCallback onFinish) {
                         isNet: Value(false),
                       ))
                       .then((value) {
-                    Toast.show(context, '创建成功');
+                    Toast.show(context, S.current.create_playlist_success);
                     onFinish();
                   });
                   Navigator.of(context).pop();
                 },
-                child: const Text('保存'),
+                child: Text(S.current.save),
               ),
             ],
           );
@@ -276,9 +279,10 @@ showCollectionDialog(BuildContext context, Song song) async {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    '请选择收藏的歌单',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    S.current.pl_select_playlist,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -305,7 +309,7 @@ showCollectionDialog(BuildContext context, Song song) async {
                         var result = await query.get();
 
                         if (result.isNotEmpty) {
-                          Toast.show(context, '已经收藏过了');
+                          Toast.show(context, S.current.already_collected);
                           return;
                         }
 
@@ -319,7 +323,7 @@ showCollectionDialog(BuildContext context, Song song) async {
                               listId: Value(playlistItem.id),
                               netId: Value(song.id),
                             ));
-                        Toast.show(context, '收藏成功');
+                        Toast.show(context, S.current.collect_success);
                         Navigator.of(context).pop(); // 关闭对话框
                       },
                       imageUrl: playlistItem.imgUrl,
@@ -335,4 +339,16 @@ showCollectionDialog(BuildContext context, Song song) async {
       );
     },
   );
+}
+
+getSnackBar(BuildContext context, String text) {
+  final snackBar = SnackBar(
+    content: Text(text),
+    backgroundColor: Colors.black54,
+    behavior: SnackBarBehavior.floating,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8),
+    ),
+  );
+  return snackBar;
 }

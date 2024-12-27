@@ -5,9 +5,11 @@ import 'package:music_app/utils/DialogUtils.dart';
 
 import 'Api/HttpClient.dart';
 import 'Player/PlayerBar.dart';
+import 'Player/PlayerController.dart';
 import 'component/CardMusicListItem.dart';
 import 'component/DetailTopBar.dart';
 import 'component/ImageNet.dart';
+import 'generated/l10n.dart';
 
 class AlbumDetailPage extends StatefulWidget {
   final int id; // 传递列表项索引
@@ -177,8 +179,16 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
         bottom: 5,
       ),
       child: CardMusicListItem(
+        showAdd: true,
+        onAddPressed: () {
+          addToList(context, item);
+          ScaffoldMessenger.of(context).showSnackBar(
+              getSnackBar(context, '${S.current.add} ${item.name}'));
+        },
         title: item.name ?? '',
-        onTap: () {},
+        onTap: () {
+          addPlaylist(context, _items, index);
+        },
         onCollectingPressed: () {
           showCollectionDialog(context, item);
         },
@@ -195,7 +205,15 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
       padding: const EdgeInsets.only(left: 5, right: 5),
       child: CardMusicListItem(
         title: item.name ?? '',
-        onTap: () {},
+        showAdd: true,
+        onAddPressed: () {
+          addToList(context, item);
+          ScaffoldMessenger.of(context).showSnackBar(
+              getSnackBar(context, '${S.current.add} ${item.name}'));
+        },
+        onTap: () {
+          addPlaylist(context, _items, index);
+        },
         onCollectingPressed: () {
           showCollectionDialog(context, item);
         },

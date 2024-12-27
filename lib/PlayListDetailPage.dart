@@ -16,6 +16,7 @@ import 'component/CardMusicListItem.dart';
 import 'component/CustomPagination.dart';
 import 'component/DetailTopBar.dart';
 import 'component/ImageNet.dart';
+import 'generated/l10n.dart';
 import 'main.dart';
 
 class PlayListDetailPage extends StatefulWidget {
@@ -451,8 +452,14 @@ class _PlaylistDetailPageState extends State<PlayListDetailPage> {
       ),
       child: CardMusicListItem(
         title: item.name ?? '',
+        showAdd: true,
+        onAddPressed: () {
+          addToList(context, item);
+          ScaffoldMessenger.of(context).showSnackBar(
+              getSnackBar(context, '${S.current.add} ${item.name}'));
+        },
         onTap: () {
-          addSong(context, item);
+          addPlaylist(context, dataList, index);
         },
         onCollectingPressed: () {
           if (widget.isNet) {
@@ -491,8 +498,14 @@ class _PlaylistDetailPageState extends State<PlayListDetailPage> {
       padding: const EdgeInsets.only(left: 5, right: 5),
       child: CardMusicListItem(
         title: item.name ?? '',
+        showAdd: true,
+        onAddPressed: () {
+          addToList(context, item);
+          ScaffoldMessenger.of(context).showSnackBar(
+              getSnackBar(context, '${S.current.add} ${item.name}'));
+        },
         onTap: () {
-          addSong(context, item);
+          addPlaylist(context, dataList, index);
         },
         onCollectingPressed: () {
           if (widget.isNet) {

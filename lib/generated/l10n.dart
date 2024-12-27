@@ -349,6 +349,216 @@ class S {
       args: [],
     );
   }
+
+  /// `Song Name`
+  String get song_name {
+    return Intl.message(
+      'Song Name',
+      name: 'song_name',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Singer Name`
+  String get singer_name {
+    return Intl.message(
+      'Singer Name',
+      name: 'singer_name',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create Playlist`
+  String get create_playlist {
+    return Intl.message(
+      'Create Playlist',
+      name: 'create_playlist',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select Cover`
+  String get select_cover {
+    return Intl.message(
+      'Select Cover',
+      name: 'select_cover',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cover uploaded successfully`
+  String get upload_cover_success {
+    return Intl.message(
+      'Cover uploaded successfully',
+      name: 'upload_cover_success',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cover upload failed`
+  String get upload_cover_fail {
+    return Intl.message(
+      'Cover upload failed',
+      name: 'upload_cover_fail',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tap to select cover`
+  String get tap_to_select_cover {
+    return Intl.message(
+      'Tap to select cover',
+      name: 'tap_to_select_cover',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Title`
+  String get playlist_title {
+    return Intl.message(
+      'Title',
+      name: 'playlist_title',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Description`
+  String get playlist_description {
+    return Intl.message(
+      'Description',
+      name: 'playlist_description',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please enter playlist title`
+  String get pl_enter_title {
+    return Intl.message(
+      'Please enter playlist title',
+      name: 'pl_enter_title',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please enter playlist description`
+  String get pl_enter_description {
+    return Intl.message(
+      'Please enter playlist description',
+      name: 'pl_enter_description',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel`
+  String get cancel {
+    return Intl.message(
+      'Cancel',
+      name: 'cancel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Title can't be null`
+  String get title_cant_not_be_null {
+    return Intl.message(
+      'Title can\'t be null',
+      name: 'title_cant_not_be_null',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please upload cover image`
+  String get pl_upload_cover {
+    return Intl.message(
+      'Please upload cover image',
+      name: 'pl_upload_cover',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save`
+  String get save {
+    return Intl.message(
+      'Save',
+      name: 'save',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create playlist success`
+  String get create_playlist_success {
+    return Intl.message(
+      'Create playlist success',
+      name: 'create_playlist_success',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please select the playlist to collect`
+  String get pl_select_playlist {
+    return Intl.message(
+      'Please select the playlist to collect',
+      name: 'pl_select_playlist',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Already collected`
+  String get already_collected {
+    return Intl.message(
+      'Already collected',
+      name: 'already_collected',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Collect success`
+  String get collect_success {
+    return Intl.message(
+      'Collect success',
+      name: 'collect_success',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Play`
+  String get play {
+    return Intl.message(
+      'Play',
+      name: 'play',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add`
+  String get add {
+    return Intl.message(
+      'Add',
+      name: 'add',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

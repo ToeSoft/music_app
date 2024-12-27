@@ -8,6 +8,7 @@ import 'Api/ResponseEntry/ArtistDescResult.dart';
 import 'Api/ResponseEntry/ArtistDetailResult.dart';
 import 'Api/ResponseEntry/Song.dart' as SingleSong;
 import 'Player/PlayerBar.dart';
+import 'Player/PlayerController.dart';
 import 'component/CardMusicListItem.dart';
 import 'component/CustomPagination.dart';
 import 'component/DetailTopBar.dart';
@@ -312,7 +313,15 @@ class _SongsViewState extends State<SongsView>
       ),
       child: CardMusicListItem(
         title: item.name ?? '',
-        onTap: () {},
+        showAdd: true,
+        onAddPressed: () {
+          addToList(context, item);
+          ScaffoldMessenger.of(context).showSnackBar(
+              getSnackBar(context, '${S.current.add} ${item.name}'));
+        },
+        onTap: () {
+          addPlaylist(context, dataList, index);
+        },
         onCollectingPressed: () {
           var song = SingleSong.Song(
             id: item.id,
@@ -337,8 +346,16 @@ class _SongsViewState extends State<SongsView>
     return Padding(
       padding: const EdgeInsets.only(left: 5, right: 5),
       child: CardMusicListItem(
+        showAdd: true,
+        onAddPressed: () {
+          addToList(context, item);
+          ScaffoldMessenger.of(context).showSnackBar(
+              getSnackBar(context, '${S.current.add} ${item.name}'));
+        },
         title: item.name ?? '',
-        onTap: () {},
+        onTap: () {
+          addPlaylist(context, dataList, index);
+        },
         onCollectingPressed: () {
           var song = SingleSong.Song(
             id: item.id,

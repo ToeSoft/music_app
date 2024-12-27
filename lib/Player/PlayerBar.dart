@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../component/PlaylistDialogContent.dart';
+import '../generated/l10n.dart';
 import '../main.dart';
 import 'AlbumInfo.dart';
 import 'ControlButtons.dart';
@@ -11,7 +12,9 @@ import 'MusicPlayerState.dart';
 import 'PlayerController.dart';
 import 'ProgressBar.dart';
 import 'RightMenuButton.dart';
+
 final player = AudioPlayer();
+
 class MusicPlayerBar extends StatelessWidget {
   const MusicPlayerBar({super.key});
 
@@ -71,7 +74,7 @@ class MusicPlayerBar extends StatelessWidget {
               context: context,
               barrierColor: Colors.black.withOpacity(0.3),
               barrierDismissible: true,
-              barrierLabel: '关闭',
+              barrierLabel: S.current.close,
               transitionDuration: const Duration(milliseconds: 300),
               pageBuilder: (context, animation, secondaryAnimation) {
                 return Stack(
@@ -139,9 +142,14 @@ class MusicPlayerBar extends StatelessWidget {
                               toBigPlayerPage();
                             },
                             child: AlbumInfo(
-                              imageUrl: 'https://picsum.photos/200/200',
-                              songName: '歌曲名称',
-                              artistName: '歌手名称',
+                              imageUrl: state.currentSong?.al?.picUrl ??
+                                  'https://picsum.photos/200/200',
+                              songName: state.currentSong?.name ??
+                                  S.current.song_name,
+                              artistName: state.currentSong?.ar
+                                      ?.map((e) => e.name)
+                                      .join(",") ??
+                                  S.current.singer_name,
                               textColor: textColor,
                             ),
                           ),
@@ -188,7 +196,9 @@ class MusicPlayerBar extends StatelessWidget {
                                         totalDuration: state.totalDuration,
                                         textColor: textColor,
                                         onChanged: (value) {
-                                          updateProgress(context, value);
+                                          player.seek(Duration(
+                                                  milliseconds: value.toInt()) *
+                                              1000);
                                         },
                                       ),
                                     ],

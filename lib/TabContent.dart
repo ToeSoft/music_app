@@ -1,13 +1,14 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:music_app/Api/RequestEntry/MusicRequestParams.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:music_app/utils/DialogUtils.dart';
 
 import 'AlbumDetailPage.dart';
 import 'Api/HttpClient.dart';
 import 'ArtistDetailPage.dart';
 import 'PlayListDetailPage.dart';
-import 'Player/PlayerBar.dart';
+import 'Player/MusicPlayerBloc.dart';
+import 'Player/MusicPlayerState.dart';
+import 'Player/PlayerController.dart';
 import 'component/CardMusicListItem.dart';
 import 'component/CustomPagination.dart';
 import 'generated/l10n.dart';
@@ -132,28 +133,23 @@ class _TabContentState extends State<TabContent>
     }
 
     var item = dataList[index];
+
     if (widget.type == 1) {
       return CardMusicListItem(
         title: '${item.name}',
         imageUrl: '${item.al?.picUrl}',
+        showAdd: true,
+        onAddPressed: () {
+          addToList(context, item);
+          ScaffoldMessenger.of(context).showSnackBar(
+              getSnackBar(context, '${S.current.add} ${item.name}'));
+        },
         description:
             '${item.ar?.map((e) => e.name).join(' / ')} - ${item.al?.name}',
         onTap: () async => {
-          musicHttp.getMusic(getMusicParams("${item.id}")).then((value) {
-            // player.pause();
-            player.play(UrlSource(value.urlInfo?.url ?? ""));
-
-            final snackBar = SnackBar(
-              content: Text('播放 ${item.name}'),
-              backgroundColor: Colors.black54,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            );
-
-            ScaffoldMessenger.of(context).showSnackBar(snackBar);
-          })
+          ScaffoldMessenger.of(context).showSnackBar(
+              getSnackBar(context, '${S.current.play} ${item.name}')),
+          addSong(context, item),
         },
         onCollectingPressed: () => {showCollectionDialog(context, item)},
         showCollecting: true,
@@ -241,71 +237,74 @@ class _TabContentState extends State<TabContent>
   Widget build(BuildContext context) {
     super.build(context);
 
-    if (dataList.isEmpty && loaded) {
-      return Center(
-        child: Text(S.of(context).no_more_data), // 通用空数据提示
-      );
-    }
+    return BlocBuilder<MusicPlayerBloc, MusicPlayerState>(
+        builder: (context, state) {
+      if (dataList.isEmpty && loaded) {
+        return Center(
+          child: Text(S.of(context).no_more_data), // 通用空数据提示
+        );
+      }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        bool isWideScreen = constraints.maxWidth > 600;
-        if (isWideScreen) {
-          return Column(
-            children: [
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  transitionBuilder: (child, animation) => FadeTransition(
-                    opacity: animation,
-                    child: child,
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          bool isWideScreen = constraints.maxWidth > 600;
+          if (isWideScreen) {
+            return Column(
+              children: [
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    transitionBuilder: (child, animation) => FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    ),
+                    child: loaded
+                        ? GridView.builder(
+                            key: ValueKey<int>(page),
+                            // 用页码区分不同状态，确保动画触发
+                            controller: _scrollController,
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount:
+                                  (constraints.maxWidth / 250).floor(),
+                              mainAxisExtent: 85,
+                              crossAxisSpacing: 5,
+                              mainAxisSpacing: 5,
+                            ),
+                            itemCount: dataList.length + (widget.isBig ? 0 : 1),
+                            itemBuilder: (context, index) => buildItem(index),
+                          )
+                        : Center(child: CircularProgressIndicator()),
                   ),
-                  child: loaded
-                      ? GridView.builder(
-                          key: ValueKey<int>(page),
-                          // 用页码区分不同状态，确保动画触发
-                          controller: _scrollController,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount:
-                                (constraints.maxWidth / 250).floor(),
-                            mainAxisExtent: 85,
-                            crossAxisSpacing: 5,
-                            mainAxisSpacing: 5,
-                          ),
-                          itemCount: dataList.length + (widget.isBig ? 0 : 1),
-                          itemBuilder: (context, index) => buildItem(index),
-                        )
-                      : Center(child: CircularProgressIndicator()),
                 ),
-              ),
-              CustomPagination(
-                totalPages: (itemCount / 30).ceil(),
-                onPageChanged: (page) {
-                  setState(() {
-                    loaded = false;
-                  });
+                CustomPagination(
+                  totalPages: (itemCount / 30).ceil(),
+                  onPageChanged: (page) {
+                    setState(() {
+                      loaded = false;
+                    });
 
-                  // 更新当前页码并重新加载数据
-                  this.page = (page - 1) * 30;
-                  loadData();
-                },
-              ),
-            ],
-          );
-        } else {
-          if (!loaded) {
-            return const Center(child: CircularProgressIndicator());
-          } else {
-            return ListView.builder(
-              controller: _scrollController,
-              itemCount: dataList.length + (widget.isBig ? 0 : 1),
-              itemBuilder: (context, index) => buildItem(index),
+                    // 更新当前页码并重新加载数据
+                    this.page = (page - 1) * 30;
+                    loadData();
+                  },
+                ),
+              ],
             );
+          } else {
+            if (!loaded) {
+              return const Center(child: CircularProgressIndicator());
+            } else {
+              return ListView.builder(
+                controller: _scrollController,
+                itemCount: dataList.length + (widget.isBig ? 0 : 1),
+                itemBuilder: (context, index) => buildItem(index),
+              );
+            }
           }
-        }
-      },
-    );
+        },
+      );
+    });
   }
 
   @override

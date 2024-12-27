@@ -1,13 +1,11 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:music_app/Api/HttpClient.dart';
-import 'package:music_app/Api/RequestEntry/MusicRequestParams.dart';
 import 'package:music_app/Player/MusicPlayerBloc.dart';
 import 'package:music_app/Player/MusicPlayerState.dart';
 
-import '../Player/PlayerBar.dart';
+import '../Player/PlayerController.dart';
 import '../generated/l10n.dart';
+import '../utils/DialogUtils.dart';
 import 'CardMusicListItem.dart';
 
 class PlaylistDialogContent extends StatelessWidget {
@@ -56,28 +54,17 @@ class PlaylistDialogContent extends StatelessWidget {
                         itemCount: queue.length,
                         itemBuilder: (context, index) {
                           return CardMusicListItem(
+                            showRemove: true,
+                            onRemovePressed: () {
+                              removeSong(context, index);
+                            },
                             title: "${queue[index].name}",
                             onTap: () async {
-                              final http = HTTP.getClient<MusicClient>();
-                              var result = await http.getMusic(
-                                  getMusicParams("${queue[index].id}"));
-                              print("${result.urlInfo?.url}");
+                              play(context, queue[index]);
 
-                              player.pause();
-
-                              player.play(UrlSource(result.urlInfo?.url ?? ""));
-
-                              final snackBar = SnackBar(
-                                content: Text('播放 ${queue[index].name}'),
-                                backgroundColor: Colors.black54,
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              );
-
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(snackBar);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  getSnackBar(context,
+                                      '${S.current.play} ${queue[index].name}'));
                             },
                             imageUrl: "${queue[index].al?.picUrl}",
                             description:
